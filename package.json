@@ -1,37 +1,26 @@
 {
-  "name": "nyt",
-  "version": "0.1.0",
+  "name": "mern",
+  "version": "1.0.0",
   "description": "",
   "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "client": "cd client && npm run start",
+    "start": "./node_modules/.bin/concurrently \"./node_modules/.bin/nodemon\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "deploy": "yarn build && git add . && git commit -m \"Building for production\" && git push heroku master",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^3.5.0",
-    "nodemon": "^1.18.2"
+    "nodemon": "^1.11.0"
   },
   "dependencies": {
-    "axios": "^0.18.0",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.3",
-    "mongoose": "^4.11.7",
-    "morgan": "^1.9.0",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-router": "^4.3.1",
-    "react-router-dom": "^4.1.2",
-    "react-scripts": "1.0.14"
-  },
-  "scripts": {
-    "debug": "concurrently \"node --inspect-brk=43240 server.js\" \"npm run client\"",
-    "start": "if-env NODE_ENV=production && npm run server || npm run start:dev",
-    "server": "node server.js",
-    "start:dev": "concurrently \"nodemon --ignore 'client/*'\" \"npm run client\"",
-    "seed": "node scripts/seedDB.js",
-    "client": "cd client && npm run start",
-    "install": "cd client && npm install",
-    "build": "cd client && npm run build",
-    "heroku-postbuild": "npm run build"
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
+    "express": "^4.15.4",
+    "mongoose": "^4.11.10"
   }
 }

@@ -1,55 +1,63 @@
-// Require Node Modules
+// Dependecies
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const Controller = require('./controllers/controller.js');
-const app = express();
+const bluebird = require("bluebird");
+const bodyParser = require("body-parser");
+const path = require("path");
+
+// Set up a default port, configure mongoose, configure our middleware
 const PORT = process.env.PORT || 3001;
-
-// Initialize Express for debugging & body parsing
-
-
-app.use(bodyParser.urlencoded({
-  extended: false
-}));
+mongoose.Promise = bluebird;
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// Serve up static assets if in production (running on Heroku)
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+} else {
+  app.use(express.static(__dirname + "/client/public"));
+}
 
-// Serve Static Content
-app.use(express.static("client/build"));
+// enable CORS, use:
+// https://enable-cors.org/server_expressjs.html
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  next();
+});
 
-// Import Routes/Controller
-app.use(Controller);
+// Routing
+var articlesController = require("./server/controllers/article-controller");
+var router = new express.Router();
+// Define any API routes first
+// Get saved articles
+router.get("/api/saved", articlesController.find);
+// Save articles
+router.post("/api/saved", articlesController.insert);
+// delete saved articles
+router.delete("/api/saved/:id", articlesController.delete);
+// Send every other request to the React app
+router.get("/*", function(req, res) {
+  res.sendFile(path.join(__dirname, "./client/build/index.html"));
+});
 
+app.use(router);
 
-// Database Configuration with Mongoose
-// ---------------------------------------------------------------------------------------------------------------
-// Connect to localhost if not a production environment
-mongoose.connect(
-  process.env.MONGODB_URI || "mongodb://localhost/nyt",
-  {
-    useMongoClient: true
+// Connect mongoose to our database
+const db = process.env.MONGODB_URI || "mongodb://localhost/nyt-react";
+mongoose.connect(db, function(error) {
+  // Log any errors connecting with mongoose
+  if (error) {
+    console.error(error);
   }
-);
-const db = mongoose.connection;
-
-// Show any Mongoose errors
-db.on('error', function(err) {
-  console.log('Mongoose Error: ', err);
+  // Or log a success message
+  else {
+    console.log("mongoose connection is successful");
+  }
 });
 
-// Once logged in to the db through mongoose, log a success message
-db.once('open', function() {
-  console.log('Mongoose connection successful.');
-});
-
-// Import the Article model
-const Article = require('./models/Article.js');
-// ---------------------------------------------------------------------------------------------------------------
-
-
-// Launch App
-
-app.listen(PORT, function(){
-  console.log(`🌎  ==> API Server now listening on PORT ${PORT}!`);
+// Start the server
+app.listen(PORT, function() {
+  console.log(`🌎 ==> Server now on port ${PORT}!`);
 });
